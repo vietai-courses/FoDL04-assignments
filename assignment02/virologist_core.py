@@ -6,8 +6,9 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from typing import Callable, Optional, Tuple
 
-# Logging setup
-logging.basicConfig(level=logging.INFO)
+# Logging setup: keep messages clean in notebook output
+# Use a simple message-only formatter so outputs don't show `INFO:root:` prefixes.
+logging.basicConfig(level=logging.INFO, format='%(message)s', force=True)
 
 # Configuration constants for readable thresholds and geometry
 MAX_EPOCHS = 5
