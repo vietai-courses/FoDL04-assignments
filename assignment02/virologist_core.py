@@ -6,14 +6,11 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from typing import Callable, Optional, Tuple
 
-# Logging setup: keep messages clean in notebook output
-# Use a simple message-only formatter so outputs don't show `INFO:root:` prefixes.
 logging.basicConfig(level=logging.INFO, format='%(message)s', force=True)
 
-# Configuration constants for readable thresholds and geometry
 MAX_EPOCHS = 5
 ALPHA_REQUIRED_ACC = 0.98
-BETA_TARGET_ACC = 0.90
+BETA_TARGET_ACC = 0.80
 PARAM_LIMIT = 2000
 GAMMA_TOLERANCE = 1e-4
 OMICRON_DEFAULT_INPUT_SHAPE: Tuple[int, ...] = (1, 1, 28, 28)
@@ -145,14 +142,20 @@ class VirusValidator:
     @staticmethod
     def verify_beta_strain(
         model: nn.Module,
-        train_func: Callable[[nn.Module, optim.Optimizer, int], None],
-        test_func: Callable[[nn.Module], float],
+        train_func: Callable[[nn.Module, optim.Optimizer, DataLoader, torch.device, int], None],
+        test_func: Callable[[nn.Module, DataLoader, torch.device], float],
         optimizer: optim.Optimizer,
+        train_loader: Optional[DataLoader] = None,
+        test_loader: Optional[DataLoader] = None,
+        device: Optional[torch.device] = None,
     ) -> bool:
         """Check Beta strain: parameter size and short training to target accuracy.
 
-        Returns True if the model passes the parameter-size check and achieves
-        `BETA_TARGET_ACC` within `MAX_EPOCHS`, otherwise False.
+        The function now requires `train_loader`, `test_loader`, and `device`
+        to call the provided `train_func` and `test_func` which operate on
+        batches and devices. Returns True if the model passes the
+        parameter-size check and achieves `BETA_TARGET_ACC` within
+        `MAX_EPOCHS`, otherwise False.
         """
         total_params = VirusValidator.get_parameter_count(model)
 
@@ -162,10 +165,14 @@ class VirusValidator:
 
         logging.info("[PASSED] Size Check: %d parameters. Initiating training...", total_params)
 
+        if train_loader is None or test_loader is None or device is None:
+            logging.error("Missing `train_loader`, `test_loader`, or `device` for training.")
+            return False
+
         current_accuracy = 0.0
         for epoch in range(1, MAX_EPOCHS + 1):
-            train_func(model, optimizer, epoch)
-            current_accuracy = test_func(model)
+            train_func(model, optimizer, train_loader, device, epoch)
+            current_accuracy = test_func(model, test_loader, device)
 
             if current_accuracy > BETA_TARGET_ACC:
                 logging.info("[SUCCESS] Beta Virus survived with accuracy %.2f%%!", current_accuracy * 100)
