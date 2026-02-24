@@ -8,7 +8,7 @@ All materials are provided exclusively for enrolled students and authorized part
 ## Want to Learn More or Join?
 For more information about the class, enrollment, or upcoming sessions:
 - Visit: [https://newturing.ai/](https://newturing.ai/)
-- Facebook: [New Turing Institute](https://www.facebook.com/newturinginstitute)
+- Facebook: [New Turing Institute](https://www.facebook.com/newturing/)
 - Email: contact@newturing.ai
 
 Thank you for respecting the integrity of the course and the efforts of all participants.
